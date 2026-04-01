@@ -15,6 +15,10 @@ build/
 venv/
 .pytest_cache/
 
+# Startup scripts (local environment-specific)
+run-*.ps1
+run.ps1
+
 # Whisper model cache
 ~/.cache/whisper/
 
