@@ -8,7 +8,6 @@ on:
 
 jobs:
   test:
-    if: false  # workflow paused
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -38,7 +37,6 @@ jobs:
           pytest tests/integration/ -v
 
   lint:
-    if: false  # workflow paused
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
