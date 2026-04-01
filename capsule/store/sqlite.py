@@ -4,6 +4,8 @@ Raw queries — no ORM. Fast, simple, zero extra dependencies.
 Schema is append-only friendly — we never delete capsules, only mark them.
 """
 
+from __future__ import annotations
+
 import json
 import logging
 import sqlite3
