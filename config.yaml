@@ -1,0 +1,83 @@
+# Open Memory Capsule - Default Configuration
+# Copy to config.local.yaml and edit. config.local.yaml is gitignored.
+# All values can be overridden with environment variables (see .env.example)
+
+provider: ollama     # ollama | openai | anthropic | groq
+
+ollama:
+  base_url: "http://localhost:11434"
+  llm_model: "phi3.5:mini"
+  embed_model: "nomic-embed-text"
+
+openai:
+  llm_model: "gpt-4o-mini"
+  embed_model: "text-embedding-3-small"
+
+anthropic:
+  llm_model: "claude-haiku-4-5-20251001"
+
+groq:
+  llm_model: "llama-3.1-8b-instant"
+
+whisper:
+  model: "small"       # tiny | base | small | medium
+  device: "cuda"       # cuda | cpu
+  language: null       # null = auto-detect
+
+storage:
+  sqlite_path: "./data/capsules.db"
+  chroma_path: "./data/chroma"
+  uploads_path: "./data/uploads"
+
+api:
+  host: "0.0.0.0"
+  port: 8000
+  api_key: ""          # empty = no auth (fine for local)
+  cors_origins: ["*"]
+
+integrations:
+  # --- Auto-capture (zero effort after first setup) ---
+
+  whatsapp_enabled: false              # Personal WhatsApp via whatsapp-web.js
+  whatsapp_session_path: "./data/whatsapp_session"
+
+  whatsapp_business_enabled: false     # WhatsApp Business API
+  whatsapp_business_token: ""
+  whatsapp_business_phone_id: ""
+  whatsapp_business_verify_token: ""
+
+  telegram_enabled: false              # Telegram userbot (all chats)
+  telegram_api_id: ""
+  telegram_api_hash: ""
+  telegram_phone: ""
+  telegram_session_path: "./data/telegram_session"
+
+  email_enabled: false                 # IMAP (Gmail, Outlook, Yahoo, any)
+  email_host: "imap.gmail.com"
+  email_port: 993
+  email_username: ""
+  email_password: ""
+  email_use_ssl: true
+  email_folder: "INBOX"
+
+  zoom_enabled: false
+  zoom_recordings_path: ""            # e.g. ~/Documents/Zoom
+
+  slack_enabled: false
+  slack_bot_token: ""
+  slack_channel_ids: []
+
+  discord_enabled: false
+  discord_bot_token: ""
+  discord_channel_ids: []
+
+  # --- File system watchers ---
+  watch_downloads: true               # auto-watch your Downloads folder
+  watch_screenshots: true             # auto-watch your Screenshots folder
+  watch_folders: []                   # extra folders to watch
+  #   - "/path/to/dropbox/CapsuleInbox"
+  #   - "/path/to/google-drive/Capsules"
+
+  webhook_secret: ""                  # for verifying Zapier/n8n/Make webhooks
+
+debug: false

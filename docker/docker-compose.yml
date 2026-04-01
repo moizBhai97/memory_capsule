@@ -1,0 +1,76 @@
+version: "3.9"
+
+services:
+  # Background daemon — watches folders, processes jobs
+  daemon:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    command: python -m daemon
+    volumes:
+      - ../data:/app/data
+      - ../config.local.yaml:/app/config.local.yaml:ro
+      # Mount your folders to watch inside the container
+      # - ~/Downloads:/watch/downloads:ro
+      # - ~/Pictures/Screenshots:/watch/screenshots:ro
+    environment:
+      - MC_WATCH_DOWNLOADS=false        # using mounted volumes instead
+      - MC_WATCH_SCREENSHOTS=false
+    env_file:
+      - ../.env                         # optional — for API keys
+    restart: unless-stopped
+    depends_on:
+      - ollama
+
+  # REST API
+  api:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    command: uvicorn api.main:app --host 0.0.0.0 --port 8000
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../data:/app/data
+      - ../config.local.yaml:/app/config.local.yaml:ro
+    env_file:
+      - ../.env
+    restart: unless-stopped
+    depends_on:
+      - ollama
+
+  # Ollama — local AI (LLM + embeddings)
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    # Uncomment for GPU support:
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+    restart: unless-stopped
+
+  # One-time model puller — runs once then exits
+  model-setup:
+    image: ollama/ollama:latest
+    depends_on:
+      - ollama
+    entrypoint: >
+      sh -c "
+        sleep 5 &&
+        ollama pull phi3.5:mini &&
+        ollama pull nomic-embed-text &&
+        echo 'Models ready'
+      "
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+    restart: "no"
+
+volumes:
+  ollama_data:

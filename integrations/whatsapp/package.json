@@ -1,0 +1,19 @@
+{
+  "name": "memory-capsule-whatsapp-bridge",
+  "version": "0.1.0",
+  "description": "WhatsApp Web bridge for Open Memory Capsule",
+  "main": "bridge.js",
+  "scripts": {
+    "start": "node bridge.js",
+    "dev": "node --watch bridge.js"
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "form-data": "^4.0.0",
+    "qrcode-terminal": "^0.12.0",
+    "whatsapp-web.js": "^1.23.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

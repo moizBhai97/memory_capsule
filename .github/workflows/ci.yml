@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Install core dependencies
+        run: |
+          pip install --upgrade pip
+          pip install pyyaml httpx chromadb pymupdf Pillow watchdog
+          pip install pytest pytest-asyncio
+
+      - name: Run unit tests (no GPU, no AI providers needed)
+        run: |
+          pytest tests/unit/ -v
+
+      - name: Run integration tests (mocked AI)
+        run: |
+          pytest tests/integration/ -v
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install pyflakes
+      - name: Check for obvious errors
+        run: python -m pyflakes capsule/ providers/ api/ daemon/ cli/ integrations/ || true

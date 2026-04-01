@@ -1,0 +1,62 @@
+{
+  "_comment": "Import this into n8n to automatically capture Gmail attachments and new emails",
+  "name": "Memory Capsule — Gmail Auto-Capture",
+  "nodes": [
+    {
+      "name": "Gmail Trigger",
+      "type": "n8n-nodes-base.gmailTrigger",
+      "parameters": {
+        "pollTimes": { "item": [{ "mode": "everyMinute" }] },
+        "filters": {}
+      },
+      "position": [250, 300]
+    },
+    {
+      "name": "Capture Email Body",
+      "type": "n8n-nodes-base.httpRequest",
+      "parameters": {
+        "method": "POST",
+        "url": "http://YOUR_SERVER:8000/api/webhooks/ingest",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "text", "value": "Subject: {{ $json.subject }}\nFrom: {{ $json.from }}\n\n{{ $json.text }}" },
+            { "name": "source_app", "value": "gmail" },
+            { "name": "source_sender", "value": "={{ $json.from }}" },
+            { "name": "source_chat", "value": "={{ $json.subject }}" }
+          ]
+        }
+      },
+      "position": [500, 300]
+    },
+    {
+      "name": "Has Attachments?",
+      "type": "n8n-nodes-base.if",
+      "parameters": {
+        "conditions": {
+          "boolean": [{ "value1": "={{ $json.attachments.length > 0 }}", "value2": true }]
+        }
+      },
+      "position": [500, 500]
+    },
+    {
+      "name": "Upload Attachment",
+      "type": "n8n-nodes-base.httpRequest",
+      "parameters": {
+        "method": "POST",
+        "url": "http://YOUR_SERVER:8000/api/capsules/upload",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            { "name": "file", "value": "={{ $binary.attachment }}" },
+            { "name": "source_app", "value": "gmail" },
+            { "name": "source_sender", "value": "={{ $json.from }}" },
+            { "name": "source_chat", "value": "={{ $json.subject }}" }
+          ]
+        }
+      },
+      "position": [750, 500]
+    }
+  ]
+}

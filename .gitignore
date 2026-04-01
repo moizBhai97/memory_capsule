@@ -1,0 +1,26 @@
+# Environment & secrets
+.env
+config.local.yaml
+
+# Data (user's personal data — never commit)
+data/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+.pytest_cache/
+
+# Whisper model cache
+~/.cache/whisper/
+
+# EasyOCR model cache
+~/.EasyOCR/
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Memory Capsule</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      width: 320px;
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #1a202c;
+      color: #e2e8f0;
+    }
+
+    .header {
+      padding: 16px;
+      background: #2d3748;
+      border-bottom: 1px solid #4a5568;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .header h1 {
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #68d391;
+      margin-left: auto;
+    }
+
+    .status-dot.offline { background: #fc8181; }
+
+    .section {
+      padding: 12px 16px;
+      border-bottom: 1px solid #2d3748;
+    }
+
+    .section label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #a0aec0;
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    textarea {
+      width: 100%;
+      background: #2d3748;
+      border: 1px solid #4a5568;
+      border-radius: 6px;
+      color: #e2e8f0;
+      font-size: 13px;
+      padding: 8px 10px;
+      resize: none;
+      height: 80px;
+      font-family: inherit;
+    }
+
+    textarea:focus { outline: none; border-color: #63b3ed; }
+
+    .btn {
+      width: 100%;
+      padding: 9px;
+      border-radius: 6px;
+      border: none;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+
+    .btn:hover { opacity: 0.85; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .btn-primary { background: #4299e1; color: white; }
+    .btn-secondary { background: #4a5568; color: #e2e8f0; margin-top: 6px; }
+
+    .actions { padding: 12px 16px; display: flex; flex-direction: column; gap: 6px; }
+
+    .shortcut-hint {
+      padding: 10px 16px;
+      font-size: 11px;
+      color: #718096;
+      text-align: center;
+    }
+
+    kbd {
+      background: #2d3748;
+      border: 1px solid #4a5568;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-size: 11px;
+    }
+
+    #status-msg {
+      padding: 8px 16px;
+      font-size: 12px;
+      color: #68d391;
+      display: none;
+    }
+
+    #status-msg.error { color: #fc8181; }
+
+    .settings-link {
+      display: block;
+      text-align: center;
+      padding: 8px;
+      font-size: 11px;
+      color: #718096;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <span>🧠</span>
+    <h1>Memory Capsule</h1>
+    <div class="status-dot" id="status-dot"></div>
+  </div>
+
+  <div class="section">
+    <label>Capture text</label>
+    <textarea id="text-input" placeholder="Paste or type anything to capture..."></textarea>
+  </div>
+
+  <div class="actions">
+    <button class="btn btn-primary" id="btn-capture-text">Capture Text</button>
+    <button class="btn btn-secondary" id="btn-capture-page">Capture This Page</button>
+    <button class="btn btn-secondary" id="btn-capture-selection">Capture Selected Text</button>
+  </div>
+
+  <div id="status-msg"></div>
+
+  <div class="shortcut-hint">
+    Keyboard shortcut: <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>C</kbd> to capture selection
+  </div>
+
+  <a class="settings-link" id="settings-link">⚙ Settings (server URL, API key)</a>
+
+  <script src="popup.js"></script>
+</body>
+</html>

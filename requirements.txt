@@ -1,0 +1,35 @@
+# ---- Core ----
+fastapi>=0.110.0
+uvicorn[standard]>=0.27.0
+pyyaml>=6.0.1
+python-multipart>=0.0.9
+httpx>=0.27.0
+
+# ---- Storage ----
+chromadb>=0.4.24
+
+# ---- AI / Local ----
+openai-whisper>=20231117        # audio transcription
+torch>=2.1.0                   # required by whisper (cuda auto-detected)
+easyocr>=1.7.1                 # image OCR
+pymupdf>=1.23.0                # PDF parsing (fitz)
+Pillow>=10.0.0                 # image utils
+
+# ---- File watching ----
+watchdog>=4.0.0
+
+# ---- Search ----
+# No extra deps — FTS5 built into SQLite, ChromaDB handles vector search
+
+# ---- Integrations (install what you need) ----
+# Telegram userbot
+telethon>=1.34.0
+
+# ---- AI Providers (install what you use) ----
+# openai>=1.12.0               # pip install openai
+# anthropic>=0.20.0            # pip install anthropic
+# groq>=0.5.0                  # pip install groq
+
+# ---- Dev ----
+pytest>=8.0.0
+pytest-asyncio>=0.23.0
