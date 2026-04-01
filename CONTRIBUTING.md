@@ -25,6 +25,21 @@ Open an issue describing:
 5. Run tests: `pytest tests/`
 6. Open a PR
 
+## Pull Request Rules
+
+- `main` is protected and accepts changes via PR only
+- Keep PRs focused and reasonably small
+- Link an issue when possible (`Fixes #123`)
+- Prefer squash merge to keep history clean
+
+## Commit Messages
+
+Use clear, imperative commit messages, for example:
+
+- `feat: add telegram watcher retry logic`
+- `fix: handle empty OCR result in image ingest`
+- `docs: clarify Docker quick-start steps`
+
 ## Where to Contribute
 
 ### High-value areas (most impact):

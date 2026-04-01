@@ -45,4 +45,4 @@ jobs:
           python-version: "3.11"
       - run: pip install pyflakes
       - name: Check for obvious errors
-        run: python -m pyflakes capsule/ providers/ api/ daemon/ cli/ integrations/ || true
+        run: python -m pyflakes capsule/ providers/ api/ daemon/ cli/ integrations/
