@@ -51,8 +51,8 @@ all = [
 capsule = "cli.__main__:main"
 
 [project.urls]
-Homepage = "https://github.com/yourusername/open-memory-capsule"
-Issues = "https://github.com/yourusername/open-memory-capsule/issues"
+Homepage = "https://github.com/moizBhai97/memory_capsule"
+Issues = "https://github.com/moizBhai97/memory_capsule/issues"
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
