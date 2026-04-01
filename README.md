@@ -145,7 +145,7 @@ Your existing apps (unchanged)
 ### Option 1: Docker (Recommended — one command)
 
 ```bash
-git clone https://github.com/yourusername/open-memory-capsule
+git clone https://github.com/moizBhai97/memory_capsule
 cd open-memory-capsule
 cp config.yaml config.local.yaml
 # Edit config.local.yaml to enable integrations you want
@@ -159,7 +159,7 @@ That's it. Open `http://localhost:8000` to verify it's running.
 **Requirements:** Python 3.10+, [Ollama](https://ollama.ai) installed
 
 ```bash
-git clone https://github.com/yourusername/open-memory-capsule
+git clone https://github.com/moizBhai97/memory_capsule
 cd open-memory-capsule
 
 # Install (makes 'capsule' command available globally)

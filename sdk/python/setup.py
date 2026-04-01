@@ -7,7 +7,7 @@ setup(
     long_description=open("../../README.md").read(),
     long_description_content_type="text/markdown",
     author="Open Memory Capsule Contributors",
-    url="https://github.com/yourusername/open-memory-capsule",
+    url="https://github.com/moizBhai97/memory_capsule",
     packages=find_packages(),
     python_requires=">=3.10",
     install_requires=["httpx>=0.27.0"],
