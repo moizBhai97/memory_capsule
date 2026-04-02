@@ -22,6 +22,19 @@ from ..registry import PROVIDER_CATALOG
 logger = logging.getLogger(__name__)
 
 
+def _parse_json_response(content: str) -> dict:
+    try:
+        return json.loads(content)
+    except json.JSONDecodeError:
+        start = content.find("{")
+        if start == -1:
+            raise
+
+        decoder = json.JSONDecoder()
+        parsed, _ = decoder.raw_decode(content[start:])
+        return parsed
+
+
 def _build_client(cfg: ProviderConfig):
     try:
         from openai import AsyncOpenAI
@@ -79,7 +92,7 @@ class OpenAICompatibleLLM(LLMProvider):
             kwargs["response_format"] = {"type": "json_object"}
 
         response = await self._client.chat.completions.create(**kwargs)
-        result = json.loads(response.choices[0].message.content)
+        result = _parse_json_response(response.choices[0].message.content)
 
         return LLMResult(
             summary=result.get("summary", ""),

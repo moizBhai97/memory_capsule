@@ -30,6 +30,7 @@ llm:
 
 transcribe:
   model: "whisper/small"        # whisper/tiny | whisper/base | whisper/small | whisper/medium
+  cache_dir: "./data/models/whisper"
   # model: "openai/gpt-4o-mini-transcribe"
   # model: "gemini/gemini-2.0-flash"
   device: "auto"                # auto | cpu | cuda  (whisper only)
