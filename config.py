@@ -2,7 +2,7 @@
 Configuration loader.
 Reads config.yaml + config.local.yaml, with environment variables reserved for sensitive values.
 
-Provider format follows OpenClaw convention: "provider/model"
+Provider format follows convention: "provider/model"
 Examples:
   llm.model: "ollama/phi3.5:latest"
   llm.model: "openai/gpt-4o-mini"
@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class ProviderConfig:
-    """Unified provider config using "provider/model" format (OpenClaw convention)."""
+    """Unified provider config using "provider/model" format"""
     model: str = "ollama/phi3.5:latest"
     api_key: str = ""
     base_url: str = ""      # override endpoint (self-hosted / openai-compatible)

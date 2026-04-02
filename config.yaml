@@ -1,7 +1,7 @@
 # Open Memory Capsule - Default Configuration
 # Copy to config.local.yaml and edit. config.local.yaml is gitignored.
 #
-# Provider format: "provider/model"  (same as OpenClaw)
+# Provider format: "provider/model"
 #
 # Examples:
 #   llm:

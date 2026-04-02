@@ -1,6 +1,5 @@
 """
-Fallback transcriber — wraps the configured provider and walks a fallback
-chain on failure, same pattern OpenClaw uses for STT auto-detection.
+Fallback transcriber — wraps the configured provider and walks a fallback chain on failure.
 Local Whisper is always last: no API key, no network, always available.
 """
 
