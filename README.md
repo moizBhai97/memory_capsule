@@ -189,11 +189,11 @@ capsule add file.pdf
 Copy `config.yaml` to `config.local.yaml` (gitignored) and edit:
 
 ```yaml
-# Which AI provider to use
+# Which AI provider to use — format: "provider/model"
 # ollama = free, local, runs on your GPU
-# openai / anthropic / groq = paid, cloud, better quality
+# openai / anthropic / groq / gemini = cloud
 llm:
-  provider: ollama
+  model: "ollama/phi3.5:latest"
 
 # Connect your platforms (enable what you use)
 integrations:
@@ -236,6 +236,7 @@ Sensitive values can also be set as environment variables (recommended):
 OPENAI_API_KEY=sk-...
 ANTHROPIC_API_KEY=sk-ant-...
 GROQ_API_KEY=gsk_...
+GEMINI_API_KEY=AIza...
 MC_API_KEY=...
 MC_EMAIL_PASSWORD=...
 ```
@@ -257,7 +258,7 @@ Precedence is: environment variables (secrets) > config.local.yaml > config.yaml
 Switch provider in one line:
 ```yaml
 llm:
-  provider: groq  # free, fast, cloud
+  model: "groq/llama-3.1-8b-instant"  # free, fast, cloud
 ```
 
 ---

@@ -1,14 +1,17 @@
-import json
+"""
+Anthropic LLM provider.
+
+Uses Anthropic's tool_use feature to enforce structured JSON output.
+"""
 
 from ..base import LLMResult, LLMProvider
-from .prompts import EXTRACTION_PROMPT
+from .prompts import EXTRACTION_PROMPT, EXTRACTION_SCHEMA
 
 
 class AnthropicLLM(LLMProvider):
     def __init__(self, api_key: str, model: str):
         try:
             import anthropic
-
             self._client = anthropic.AsyncAnthropic(api_key=api_key)
         except ImportError:
             raise ImportError("Run: pip install anthropic")
@@ -29,14 +32,28 @@ class AnthropicLLM(LLMProvider):
             raw_content=raw_content[:8000],
         )
 
+        tool = {
+            "name": "extract_capsule_info",
+            "description": "Extract structured memory capsule information from content",
+            "input_schema": EXTRACTION_SCHEMA,
+        }
+
         response = await self._client.messages.create(
             model=self.model,
             max_tokens=512,
+            tools=[tool],
+            tool_choice={"type": "tool", "name": "extract_capsule_info"},
             messages=[{"role": "user", "content": prompt}],
             temperature=0.1,
         )
 
-        result = json.loads(response.content[0].text)
+        # Anthropic returns tool_use blocks in content
+        result = {}
+        for block in response.content:
+            if block.type == "tool_use":
+                result = block.input
+                break
+
         return LLMResult(
             summary=result.get("summary", ""),
             tags=[t.lower().replace(" ", "-") for t in result.get("tags", [])[:10]],
@@ -46,7 +63,4 @@ class AnthropicLLM(LLMProvider):
         )
 
     async def health_check(self) -> bool:
-        try:
-            return self._client is not None
-        except Exception:
-            return False
+        return self._client is not None

@@ -4,7 +4,7 @@ Every AI provider implements these. Swap providers via config with zero code cha
 """
 
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 
 @dataclass
@@ -14,11 +14,7 @@ class LLMResult:
     tags: list[str]
     action_items: list[str]
     language: str = "en"
-    reminders: list[dict] = None
-
-    def __post_init__(self):
-        if self.reminders is None:
-            self.reminders = []
+    reminders: list[dict] = field(default_factory=list)
 
 
 class LLMProvider(ABC):
@@ -61,16 +57,30 @@ class TranscriptionResult:
     text: str
     language: str = "unknown"
     duration: float | None = None
-    segments: list[dict] | None = None
-
-    def __post_init__(self):
-        if self.segments is None:
-            self.segments = []
+    segments: list[dict] = field(default_factory=list)
 
 
 class TranscriptionProvider(ABC):
     @abstractmethod
     async def transcribe(self, file_path: str) -> TranscriptionResult:
+        ...
+
+    @abstractmethod
+    async def health_check(self) -> bool:
+        ...
+
+
+@dataclass
+class OCRResult:
+    """Normalised OCR output across providers."""
+    text: str
+    confidence: float | None = None          # 0.0–1.0, None if provider doesn't expose it
+    blocks: list[dict] = field(default_factory=list)  # per-region detail when available
+
+
+class OCRProvider(ABC):
+    @abstractmethod
+    async def extract_text(self, file_path: str, languages: list[str] | None = None) -> OCRResult:
         ...
 
     @abstractmethod

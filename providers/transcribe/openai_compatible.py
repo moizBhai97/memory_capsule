@@ -1,13 +1,20 @@
+"""
+OpenAI-compatible transcription provider.
+
+Handles any provider that speaks the OpenAI Audio Transcriptions API:
+  - openai/*  → api.openai.com
+  - groq/*    → api.groq.com/openai/v1  (whisper-large-v3-turbo)
+"""
+
 from pathlib import Path
 
 from ..base import TranscriptionProvider, TranscriptionResult
 
 
-class OpenAITranscriber(TranscriptionProvider):
+class OpenAICompatibleTranscriber(TranscriptionProvider):
     def __init__(self, api_key: str, model: str, language: str | None = None, base_url: str | None = None):
         try:
             from openai import AsyncOpenAI
-
             kwargs = {"api_key": api_key}
             if base_url:
                 kwargs["base_url"] = base_url

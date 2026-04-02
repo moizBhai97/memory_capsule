@@ -1,67 +1,45 @@
 """
-OpenAI-compatible LLM + Embed provider.
+OpenAI-compatible LLM provider.
 
 Handles any provider that speaks the OpenAI Chat Completions API:
-  - openai/*       → api.openai.com (SDK default)
-  - groq/*         → api.groq.com/openai/v1
-  - ollama/*       → localhost:11434/v1
-  - openai-compatible/*  → user-supplied base_url
+  - openai/*            → api.openai.com
+  - groq/*              → api.groq.com/openai/v1
+  - ollama/*            → localhost:11434/v1
+  - openai-compatible/* → user-supplied base_url
 
-All of these use the same openai.AsyncOpenAI client, just with different
-base_url and api_key values pulled from PROVIDER_CATALOG or config.
+JSON output is enforced via tool calling (function calling) — not prompt instructions.
+This works across all OpenAI-compatible backends including Ollama.
 """
 
 import json
 import logging
 
-from ..base import EmbedProvider, LLMResult, LLMProvider
-from .prompts import EXTRACTION_PROMPT
+from ..base import LLMResult, LLMProvider
+from .prompts import EXTRACTION_PROMPT, EXTRACTION_SCHEMA
 from config import ProviderConfig
-from ..registry import PROVIDER_CATALOG
+from .._openai_client import build_openai_client
 
 logger = logging.getLogger(__name__)
 
 
-def _parse_json_response(content: str) -> dict:
-    try:
-        return json.loads(content)
-    except json.JSONDecodeError:
-        start = content.find("{")
-        if start == -1:
-            raise
-
-        decoder = json.JSONDecoder()
-        parsed, _ = decoder.raw_decode(content[start:])
-        return parsed
-
-
-def _build_client(cfg: ProviderConfig):
-    try:
-        from openai import AsyncOpenAI
-    except ImportError:
-        raise ImportError("Run: pip install openai")
-
-    catalog = PROVIDER_CATALOG.get(cfg.provider_id, {})
-
-    api_key = cfg.api_key or catalog.get("api_key") or "no-key"
-    base_url = cfg.base_url or catalog.get("base_url") or None
-
-    kwargs = {"api_key": api_key}
-    if base_url:
-        kwargs["base_url"] = base_url
-
-    return AsyncOpenAI(**kwargs)
+def _parse_tool_result(response) -> dict:
+    """Extract the tool call arguments dict from a chat completion response."""
+    tool_calls = response.choices[0].message.tool_calls
+    if tool_calls:
+        return json.loads(tool_calls[0].function.arguments)
+    # Fallback: model returned text instead of a tool call (shouldn't happen)
+    content = response.choices[0].message.content or "{}"
+    return json.loads(content)
 
 
 class OpenAICompatibleLLM(LLMProvider):
     """
-    Single LLM provider class for all OpenAI-compatible backends.
-    Instantiated with a ProviderConfig — provider_id and model_id are parsed
-    from the "provider/model" string.
+    LLM provider for all OpenAI-compatible backends.
+    Uses tool calling to enforce structured JSON output — no if-else per provider.
     """
 
     def __init__(self, cfg: ProviderConfig):
-        self._client = _build_client(cfg)
+        self._client = build_openai_client(cfg)
         self.model = cfg.model_id
         self.provider_id = cfg.provider_id
 
@@ -80,20 +58,25 @@ class OpenAICompatibleLLM(LLMProvider):
             raw_content=raw_content[:8000],
         )
 
-        kwargs = dict(
+        tool = {
+            "type": "function",
+            "function": {
+                "name": "extract_capsule_info",
+                "description": "Extract structured memory capsule information from content",
+                "parameters": EXTRACTION_SCHEMA,
+            },
+        }
+
+        response = await self._client.chat.completions.create(
             model=self.model,
             messages=[{"role": "user", "content": prompt}],
+            tools=[tool],
+            tool_choice={"type": "function", "function": {"name": "extract_capsule_info"}},
             temperature=0.1,
             max_tokens=512,
         )
 
-        # Ollama's OpenAI-compatible endpoint doesn't support response_format yet
-        if self.provider_id not in ("ollama",):
-            kwargs["response_format"] = {"type": "json_object"}
-
-        response = await self._client.chat.completions.create(**kwargs)
-        result = _parse_json_response(response.choices[0].message.content)
-
+        result = _parse_tool_result(response)
         return LLMResult(
             summary=result.get("summary", ""),
             tags=[t.lower().replace(" ", "-") for t in result.get("tags", [])[:10]],
@@ -101,48 +84,6 @@ class OpenAICompatibleLLM(LLMProvider):
             language=result.get("language", "en"),
             reminders=result.get("reminders", []),
         )
-
-    async def health_check(self) -> bool:
-        try:
-            await self._client.models.list()
-            return True
-        except Exception:
-            return False
-
-
-class OpenAICompatibleEmbed(EmbedProvider):
-    """Embed provider for all OpenAI-compatible backends."""
-
-    def __init__(self, cfg: ProviderConfig):
-        self._client = _build_client(cfg)
-        self.model = cfg.model_id
-        # dimension varies by model; we detect lazily on first call
-        self._dim: int | None = None
-
-    async def embed(self, text: str) -> list[float]:
-        response = await self._client.embeddings.create(model=self.model, input=text)
-        vec = response.data[0].embedding
-        self._dim = len(vec)
-        return vec
-
-    async def embed_batch(self, texts: list[str]) -> list[list[float]]:
-        response = await self._client.embeddings.create(model=self.model, input=texts)
-        vecs = [d.embedding for d in sorted(response.data, key=lambda x: x.index)]
-        if vecs:
-            self._dim = len(vecs[0])
-        return vecs
-
-    def dimension(self) -> int:
-        # Known defaults; updated lazily after first embed call
-        known = {
-            "text-embedding-3-small": 1536,
-            "text-embedding-3-large": 3072,
-            "text-embedding-ada-002": 1536,
-            "nomic-embed-text:latest": 768,
-            "nomic-embed-text": 768,
-            "mxbai-embed-large": 1024,
-        }
-        return self._dim or known.get(self.model, 768)
 
     async def health_check(self) -> bool:
         try:

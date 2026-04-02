@@ -1,9 +1,13 @@
-import json
+"""
+Gemini LLM provider.
+
+Uses responseMimeType + responseSchema to enforce structured JSON output natively.
+"""
 
 import httpx
 
-from ..base import EmbedProvider, LLMResult, LLMProvider
-from .prompts import EXTRACTION_PROMPT
+from ..base import LLMResult, LLMProvider
+from .prompts import EXTRACTION_PROMPT, EXTRACTION_SCHEMA
 
 
 class GeminiLLM(LLMProvider):
@@ -19,6 +23,8 @@ class GeminiLLM(LLMProvider):
         source_sender: str | None = None,
         source_type: str = "unknown",
     ) -> LLMResult:
+        import json
+
         sender_line = f"Sender: {source_sender}" if source_sender else ""
         prompt = EXTRACTION_PROMPT.format(
             source_app=source_app,
@@ -35,6 +41,7 @@ class GeminiLLM(LLMProvider):
                 "generationConfig": {
                     "temperature": 0.1,
                     "responseMimeType": "application/json",
+                    "responseSchema": EXTRACTION_SCHEMA,
                 },
             },
         )
@@ -56,50 +63,6 @@ class GeminiLLM(LLMProvider):
             language=result.get("language", "en"),
             reminders=result.get("reminders", []),
         )
-
-    async def health_check(self) -> bool:
-        try:
-            r = await self._client.get(
-                "https://generativelanguage.googleapis.com/v1beta/models",
-                params={"key": self.api_key},
-                timeout=10.0,
-            )
-            return r.status_code == 200
-        except Exception:
-            return False
-
-
-class GeminiEmbed(EmbedProvider):
-    def __init__(self, api_key: str, model: str):
-        self.api_key = api_key
-        self.model = model
-        self._client = httpx.AsyncClient(timeout=60.0)
-        self._dim: int | None = None
-
-    async def embed(self, text: str) -> list[float]:
-        response = await self._client.post(
-            f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:embedContent",
-            params={"key": self.api_key},
-            json={
-                "content": {"parts": [{"text": text}]},
-            },
-        )
-        response.raise_for_status()
-        data = response.json()
-        values = data.get("embedding", {}).get("values", [])
-        if not values:
-            raise ValueError("Gemini embedding response missing values")
-        self._dim = len(values)
-        return values
-
-    async def embed_batch(self, texts: list[str]) -> list[list[float]]:
-        # Keep simple and robust: call single-item endpoint concurrently.
-        import asyncio
-
-        return await asyncio.gather(*[self.embed(t) for t in texts])
-
-    def dimension(self) -> int:
-        return self._dim or 768
 
     async def health_check(self) -> bool:
         try:

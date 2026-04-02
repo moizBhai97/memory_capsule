@@ -111,6 +111,7 @@ class Config:
     llm: ProviderConfig = field(default_factory=lambda: ProviderConfig(model="ollama/phi3.5:latest"))
     embed: ProviderConfig = field(default_factory=lambda: ProviderConfig(model="ollama/nomic-embed-text:latest"))
     transcribe: ProviderConfig = field(default_factory=lambda: ProviderConfig(model="whisper/small"))
+    ocr: ProviderConfig = field(default_factory=lambda: ProviderConfig(model="easyocr/en"))
     storage: StorageConfig = field(default_factory=StorageConfig)
     api: APIConfig = field(default_factory=APIConfig)
     integrations: IntegrationConfig = field(default_factory=IntegrationConfig)
@@ -180,6 +181,17 @@ def load_config(config_path: str = "config.yaml") -> Config:
         config.transcribe.extra = {k: v for k, v in tr_raw.items()
                                    if k not in ("model", "api_key", "base_url", "device")}
         config.transcribe.api_key = _resolve_api_key(config.transcribe.provider_id, tr_raw)
+
+    # --- OCR ---
+    ocr_raw = raw.get("ocr") or {}
+    if isinstance(ocr_raw, str):
+        config.ocr.model = ocr_raw
+    elif ocr_raw:
+        config.ocr.model = ocr_raw.get("model", config.ocr.model)
+        config.ocr.base_url = ocr_raw.get("base_url", "")
+        config.ocr.extra = {k: v for k, v in ocr_raw.items()
+                            if k not in ("model", "api_key", "base_url", "device")}
+        config.ocr.api_key = _resolve_api_key(config.ocr.provider_id, ocr_raw)
 
     # --- Storage ---
     s = raw.get("storage") or {}

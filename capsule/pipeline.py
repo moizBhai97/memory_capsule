@@ -113,9 +113,7 @@ class Pipeline:
 
         # --- Step 1: Extract raw content ---
         if file_path:
-            source_type, extracted = await ingest_file(
-                file_path,
-            )
+            source_type, extracted = await ingest_file(file_path)
             capsule.source_type = source_type
             capsule.raw_content = extracted.get("text", "")
             capsule.language = extracted.get("language")

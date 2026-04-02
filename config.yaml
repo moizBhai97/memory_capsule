@@ -36,6 +36,16 @@ transcribe:
   device: "auto"                # auto | cpu | cuda  (whisper only)
   language: null                # null = auto-detect
 
+# OCR — text extraction from images and scanned PDFs.
+# Default: easyocr (local, free, no API key needed)
+# Alternatives:
+#   model: "openai/gpt-4o-mini"                    # vision LLM, costs tokens
+#   model: "anthropic/claude-haiku-4-5-20251001"   # vision LLM, costs tokens
+#   model: "gemini/gemini-2.0-flash"               # vision LLM, free tier
+#   model: "ollama/llava"                          # local vision LLM
+ocr:
+  model: "easyocr/en"             # language codes after slash: "easyocr/en,ar" for Arabic+English
+
 storage:
   sqlite_path: "./data/capsules.db"
   chroma_path: "./data/chroma"

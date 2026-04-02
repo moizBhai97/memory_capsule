@@ -1,3 +1,10 @@
+"""
+Gemini transcription provider.
+
+Uses Gemini's multimodal API to transcribe audio. responseSchema enforces
+structured output so no fragile JSON parsing fallback is needed.
+"""
+
 import base64
 import json
 import mimetypes
@@ -6,6 +13,16 @@ from pathlib import Path
 import httpx
 
 from ..base import TranscriptionProvider, TranscriptionResult
+
+_TRANSCRIPTION_SCHEMA: dict = {
+    "type": "object",
+    "properties": {
+        "text":     {"type": "string", "description": "Full verbatim transcript"},
+        "language": {"type": "string", "description": "BCP-47 language code or 'unknown'"},
+    },
+    "required": ["text", "language"],
+    "additionalProperties": False,
+}
 
 
 class GeminiTranscriber(TranscriptionProvider):
@@ -22,29 +39,22 @@ class GeminiTranscriber(TranscriptionProvider):
 
         mime_type = mimetypes.guess_type(str(path))[0] or "audio/wav"
         audio_b64 = base64.b64encode(path.read_bytes()).decode("ascii")
-
         language_hint = self.language or "auto"
-        instruction = (
-            "Transcribe this audio accurately. Return valid JSON only with this shape: "
-            '{"text":"full transcript","language":"bcp47 or unknown"}. '
-            f"Language hint: {language_hint}."
-        )
 
         response = await self._client.post(
             f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:generateContent",
             params={"key": self.api_key},
             json={
-                "contents": [
-                    {
-                        "parts": [
-                            {"text": instruction},
-                            {"inline_data": {"mime_type": mime_type, "data": audio_b64}},
-                        ]
-                    }
-                ],
+                "contents": [{
+                    "parts": [
+                        {"text": f"Transcribe this audio accurately. Language hint: {language_hint}."},
+                        {"inline_data": {"mime_type": mime_type, "data": audio_b64}},
+                    ],
+                }],
                 "generationConfig": {
                     "temperature": 0.0,
                     "responseMimeType": "application/json",
+                    "responseSchema": _TRANSCRIPTION_SCHEMA,
                 },
             },
         )
@@ -57,16 +67,11 @@ class GeminiTranscriber(TranscriptionProvider):
             .get("parts", [{}])[0]
             .get("text", "{}")
         )
-
-        try:
-            parsed = json.loads(text)
-            transcript = (parsed.get("text") or "").strip()
-            language = (parsed.get("language") or "unknown").strip() or "unknown"
-        except json.JSONDecodeError:
-            transcript = text.strip()
-            language = "unknown"
-
-        return TranscriptionResult(text=transcript, language=language)
+        parsed = json.loads(text)
+        return TranscriptionResult(
+            text=(parsed.get("text") or "").strip(),
+            language=(parsed.get("language") or "unknown").strip() or "unknown",
+        )
 
     async def health_check(self) -> bool:
         try:

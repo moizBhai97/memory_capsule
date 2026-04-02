@@ -4,6 +4,7 @@ Public provider API — the only surface the rest of the codebase touches.
   get_llm()         → LLMProvider
   get_embed()       → EmbedProvider
   get_transcriber() → TranscriptionProvider (with automatic fallback chain)
+  get_ocr()         → OCRProvider
 
 Registry, factory functions, and fallback logic live in:
   providers/registry.py
@@ -14,7 +15,7 @@ import logging
 from functools import lru_cache
 
 from config import Config, get_config, ProviderConfig, API_KEY_ENV
-from .base import LLMProvider, EmbedProvider, TranscriptionProvider, TranscriptionResult
+from .base import LLMProvider, EmbedProvider, TranscriptionProvider, OCRProvider, TranscriptionResult, OCRResult
 from .registry import PROVIDER_REGISTRY, PROVIDER_CATALOG
 
 logger = logging.getLogger(__name__)
@@ -31,12 +32,20 @@ def _resolve(cfg: ProviderConfig, capability: str):
         logger.info("Using %s/%s for %s", cfg.provider_id, cfg.model_id, capability)
         return entry[capability](cfg)
 
-    # Unknown provider with a base_url → treat as openai-compatible
+    # Unknown provider with a base_url — treat as openai-compatible
     if cfg.base_url or PROVIDER_CATALOG.get(cfg.provider_id, {}).get("openai_compatible"):
-        if capability in ("llm", "embed"):
-            logger.info("Unknown provider '%s' — treating as openai-compatible", cfg.provider_id)
-            from .llm.openai_compatible import OpenAICompatibleLLM, OpenAICompatibleEmbed
-            return OpenAICompatibleLLM(cfg) if capability == "llm" else OpenAICompatibleEmbed(cfg)
+        if capability == "llm":
+            logger.info("Unknown provider '%s' — treating as openai-compatible for llm", cfg.provider_id)
+            from .llm.openai_compatible import OpenAICompatibleLLM
+            return OpenAICompatibleLLM(cfg)
+        if capability == "embed":
+            logger.info("Unknown provider '%s' — treating as openai-compatible for embed", cfg.provider_id)
+            from .embed.openai_compatible import OpenAICompatibleEmbed
+            return OpenAICompatibleEmbed(cfg)
+        if capability == "ocr" and PROVIDER_CATALOG.get(cfg.provider_id, {}).get("supports_vision"):
+            logger.info("Unknown provider '%s' — treating as openai-compatible for ocr", cfg.provider_id)
+            from .ocr.openai_compatible import OpenAICompatibleOCR
+            return OpenAICompatibleOCR(cfg)
 
     raise ValueError(
         f"Provider '{cfg.provider_id}' does not support '{capability}'. "
@@ -45,7 +54,7 @@ def _resolve(cfg: ProviderConfig, capability: str):
 
 
 def _validate_api_key(cfg: ProviderConfig, capability: str) -> None:
-    no_key_needed = {"ollama", "whisper"}
+    no_key_needed = {"ollama", "whisper", "easyocr"}
     if cfg.provider_id in no_key_needed:
         return
     if cfg.provider_id == "openai-compatible" and cfg.base_url:
@@ -90,3 +99,10 @@ def get_transcriber(config: Config = None) -> TranscriptionProvider:
         language=cfg.extra.get("language"),
         device=cfg.device,
     )
+
+
+@lru_cache(maxsize=1)
+def get_ocr(config: Config = None) -> OCRProvider:
+    cfg = (config or get_config()).ocr
+    _validate_api_key(cfg, "ocr")
+    return _resolve(cfg, "ocr")

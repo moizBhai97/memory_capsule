@@ -16,13 +16,11 @@ from providers import get_transcriber
 logger = logging.getLogger(__name__)
 
 
-async def ingest_file(
-    file_path: str,
-    ocr_languages: list[str] = None,
-) -> tuple[CapsuleSource, dict]:
+async def ingest_file(file_path: str) -> tuple[CapsuleSource, dict]:
     """
     Detect file type, extract content, return (source_type, extracted_data).
     Single entry point for all file-based ingestion.
+    OCR language and provider are resolved from config via get_ocr() inside extract_image.
     """
     path = Path(file_path)
 
@@ -45,7 +43,7 @@ async def ingest_file(
 
     if is_image(file_path):
         logger.info("Detected image: %s", path.name)
-        data = await extract_image(file_path, ocr_languages or ["en"])
+        data = await extract_image(file_path)
         source_type = CapsuleSource.SCREENSHOT if detect_screenshot(file_path) else CapsuleSource.IMAGE
         return source_type, data
 
