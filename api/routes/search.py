@@ -2,10 +2,9 @@
 Search endpoint — natural language queries over all capsules.
 """
 
-from typing import Optional
 from fastapi import APIRouter, Depends
 from api.middleware.auth import verify_api_key
-from api.main import get_search
+from api.state import get_search
 
 router = APIRouter(dependencies=[Depends(verify_api_key)])
 
@@ -14,10 +13,10 @@ router = APIRouter(dependencies=[Depends(verify_api_key)])
 async def search(
     q: str,
     limit: int = 10,
-    source_app: Optional[str] = None,
-    source_type: Optional[str] = None,
-    from_date: Optional[str] = None,
-    to_date: Optional[str] = None,
+    source_app: str | None = None,
+    source_type: str | None = None,
+    from_date: str | None = None,
+    to_date: str | None = None,
 ):
     """
     Natural language search over all captured memories.

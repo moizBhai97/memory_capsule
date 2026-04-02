@@ -29,7 +29,7 @@ async def extract_text(file_path: str) -> dict:
     if not path.exists():
         raise FileNotFoundError(f"PDF file not found: {file_path}")
 
-    logger.info(f"Extracting text from {path.name}")
+    logger.info("Extracting text from %s", path.name)
 
     doc = fitz.open(str(path))
     pages = []
@@ -49,7 +49,7 @@ async def extract_text(file_path: str) -> dict:
 
     # If scanned, try OCR on each page as image
     if is_scanned:
-        logger.info(f"{path.name} appears scanned, running OCR fallback")
+        logger.info("%s appears scanned, running OCR fallback", path.name)
         total_text = await _ocr_pdf(file_path)
 
     return {

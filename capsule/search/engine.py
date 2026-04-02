@@ -7,7 +7,6 @@ Future: wrap this as an MCP tool so Claude/ChatGPT can query user's memory direc
 
 import logging
 from dataclasses import dataclass
-from typing import Optional
 
 from capsule.models import Capsule
 from capsule.store.sqlite import SQLiteStore
@@ -35,10 +34,10 @@ class SearchEngine:
         self,
         query: str,
         limit: int = 10,
-        source_app: Optional[str] = None,
-        source_type: Optional[str] = None,
-        from_date: Optional[str] = None,   # ISO date string (overrides NLP)
-        to_date: Optional[str] = None,
+        source_app: str | None = None,
+        source_type: str | None = None,
+        from_date: str | None = None,   # ISO date string (overrides NLP)
+        to_date: str | None = None,
     ) -> list[SearchResult]:
         """
         Main search entry point.
@@ -53,7 +52,7 @@ class SearchEngine:
         effective_to = to_date or nlp_to
 
         if nlp_from:
-            logger.info(f"Date range detected: {effective_from} → {effective_to}")
+            logger.info("Date range detected: %s → %s", effective_from, effective_to)
 
         if not cleaned_query.strip():
             # Query was purely a date expression — return recent capsules in range

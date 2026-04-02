@@ -6,7 +6,6 @@ Every piece of captured content becomes a Capsule — regardless of source.
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Optional
 import uuid
 
 
@@ -44,6 +43,13 @@ class SourceApp(str, Enum):
     BROWSER = "browser"
     CLI = "cli"
     API = "api"
+    WEBHOOK = "webhook"
+    ZAPIER = "zapier"
+    N8N = "n8n"
+    MAKE = "make"
+    TYPEFORM = "typeform"
+    GITHUB = "github"
+    LINEAR = "linear"
     UNKNOWN = "unknown"
 
 
@@ -61,14 +67,14 @@ class Capsule:
     # --- Source info ---
     source_type: CapsuleSource = CapsuleSource.UNKNOWN
     source_app: SourceApp = SourceApp.UNKNOWN
-    source_file: Optional[str] = None       # local path to original file
-    source_url: Optional[str] = None        # original URL if applicable
-    source_sender: Optional[str] = None     # who sent it (name or identifier)
-    source_chat: Optional[str] = None       # chat name / email subject / channel
+    source_file: str | None = None       # local path to original file
+    source_url: str | None = None        # original URL if applicable
+    source_sender: str | None = None     # who sent it (name or identifier)
+    source_chat: str | None = None       # chat name / email subject / channel
 
     # --- Content ---
-    raw_content: Optional[str] = None       # transcription / OCR / extracted text
-    summary: Optional[str] = None
+    raw_content: str | None = None       # transcription / OCR / extracted text
+    summary: str | None = None
     tags: list[str] = field(default_factory=list)
     action_items: list[str] = field(default_factory=list)
     reminders: list[Reminder] = field(default_factory=list)
@@ -76,12 +82,12 @@ class Capsule:
 
     # --- Metadata ---
     metadata: dict = field(default_factory=dict)   # platform-specific extras
-    language: Optional[str] = None                 # detected language
-    duration_seconds: Optional[float] = None       # for audio/video
+    language: str | None = None                 # detected language
+    duration_seconds: float | None = None       # for audio/video
 
     # --- State ---
     status: CapsuleStatus = CapsuleStatus.PENDING
-    error: Optional[str] = None
+    error: str | None = None
     timestamp: datetime = field(default_factory=datetime.utcnow)   # when content was created
     created_at: datetime = field(default_factory=datetime.utcnow)  # when capsule was created
     updated_at: datetime = field(default_factory=datetime.utcnow)

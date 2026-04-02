@@ -79,7 +79,7 @@ class TelegramWatcher:
 
         logger.info("Connecting to Telegram...")
         await client.start(phone=ig.telegram_phone)
-        logger.info(f"Telegram userbot active — watching all chats")
+        logger.info("Telegram userbot active — watching all chats")
         await client.run_until_disconnected()
 
     async def _download_media(self, client, message) -> str | None:
@@ -91,7 +91,7 @@ class TelegramWatcher:
             await client.download_media(message, file=tmp_path)
             return tmp_path
         except Exception as e:
-            logger.warning(f"Failed to download Telegram media: {e}")
+            logger.warning("Failed to download Telegram media: %s", e)
             return None
 
     def _get_suffix(self, message) -> str:

@@ -59,7 +59,7 @@ class JobQueue:
             )
             conn.commit()
             job_id = cursor.lastrowid
-        logger.debug(f"Enqueued job {job_id}: {job_type}")
+        logger.debug("Enqueued job %s: %s", job_id, job_type)
         return job_id
 
     def dequeue(self) -> dict | None:
@@ -102,7 +102,7 @@ class JobQueue:
                 (status, error[:500], datetime.utcnow().isoformat(), job_id),
             )
             conn.commit()
-        logger.warning(f"Job {job_id} failed: {error[:100]}")
+        logger.warning("Job %s failed: %s", job_id, error[:100])
 
     def pending_count(self) -> int:
         with self._conn() as conn:
@@ -117,4 +117,4 @@ class JobQueue:
             ).rowcount
             conn.commit()
         if count:
-            logger.info(f"Reset {count} stuck jobs from previous run")
+            logger.info("Reset %s stuck jobs from previous run", count)

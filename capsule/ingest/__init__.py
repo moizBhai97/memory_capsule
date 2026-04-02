@@ -5,22 +5,19 @@ Returns a dict with at minimum: {"text": str}
 
 import logging
 from pathlib import Path
-from typing import Optional
 
-from .audio import is_audio, transcribe
+from .audio import is_audio
 from .image import is_image, extract_text as extract_image, detect_screenshot
 from .pdf import is_pdf, extract_text as extract_pdf
 from .text import is_text_file, extract_from_file, extract_from_url, extract_from_string
 from capsule.models import CapsuleSource
+from providers import get_transcriber
 
 logger = logging.getLogger(__name__)
 
 
 async def ingest_file(
     file_path: str,
-    whisper_model: str = "small",
-    whisper_device: str = "cuda",
-    whisper_language: str = None,
     ocr_languages: list[str] = None,
 ) -> tuple[CapsuleSource, dict]:
     """
@@ -30,27 +27,34 @@ async def ingest_file(
     path = Path(file_path)
 
     if is_audio(file_path):
-        logger.info(f"Detected audio: {path.name}")
-        data = await transcribe(file_path, whisper_model, whisper_device, whisper_language)
+        logger.info("Detected audio: %s", path.name)
+        transcriber = get_transcriber()
+        result = await transcriber.transcribe(file_path)
+        data = {
+            "text": result.text,
+            "language": result.language,
+            "duration": result.duration,
+            "segments": result.segments,
+        }
         return CapsuleSource.AUDIO, data
 
     if is_pdf(file_path):
-        logger.info(f"Detected PDF: {path.name}")
+        logger.info("Detected PDF: %s", path.name)
         data = await extract_pdf(file_path)
         return CapsuleSource.PDF, data
 
     if is_image(file_path):
-        logger.info(f"Detected image: {path.name}")
+        logger.info("Detected image: %s", path.name)
         data = await extract_image(file_path, ocr_languages or ["en"])
         source_type = CapsuleSource.SCREENSHOT if detect_screenshot(file_path) else CapsuleSource.IMAGE
         return source_type, data
 
     if is_text_file(file_path):
-        logger.info(f"Detected text file: {path.name}")
+        logger.info("Detected text file: %s", path.name)
         data = await extract_from_file(file_path)
         return CapsuleSource.TEXT, data
 
-    logger.warning(f"Unknown file type: {path.suffix}, attempting text read")
+    logger.warning("Unknown file type: %s, attempting text read", path.suffix)
     try:
         data = await extract_from_file(file_path)
         return CapsuleSource.TEXT, data

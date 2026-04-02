@@ -10,6 +10,8 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from api import state
+from api.routes import capsules, search, webhooks, health
 from config import get_config
 from capsule.store.sqlite import SQLiteStore
 from capsule.store.vector import VectorStore
@@ -18,32 +20,26 @@ from capsule.search.engine import SearchEngine
 
 logger = logging.getLogger(__name__)
 
-# Shared app state — initialized once on startup
-_state = {}
-
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     cfg = get_config()
 
-    # Initialize storage
     sqlite = SQLiteStore(cfg.storage.sqlite_path)
     vector = VectorStore(cfg.storage.chroma_path)
     pipeline = Pipeline(sqlite, vector)
-    search = SearchEngine(sqlite, vector)
+    engine = SearchEngine(sqlite, vector)
 
-    _state["sqlite"] = sqlite
-    _state["vector"] = vector
-    _state["pipeline"] = pipeline
-    _state["search"] = search
+    state.init(sqlite, pipeline, engine)
 
-    # Ensure uploads dir exists
     Path(cfg.storage.uploads_path).mkdir(parents=True, exist_ok=True)
 
-    logger.info(f"API ready — {sqlite.count()} capsules in store")
+    logger.info("API ready — %s capsules in store", sqlite.count())
     yield
     logger.info("API shutting down")
 
+
+cfg = get_config()
 
 app = FastAPI(
     title="Open Memory Capsule API",
@@ -54,7 +50,6 @@ app = FastAPI(
     redoc_url="/redoc",
 )
 
-cfg = get_config()
 app.add_middleware(
     CORSMiddleware,
     allow_origins=cfg.api.cors_origins,
@@ -63,25 +58,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Register routes
-from api.routes import capsules, search, webhooks, health
-
 app.include_router(health.router, tags=["health"])
 app.include_router(capsules.router, prefix="/api/capsules", tags=["capsules"])
 app.include_router(search.router, prefix="/api/search", tags=["search"])
 app.include_router(webhooks.router, prefix="/api/webhooks", tags=["webhooks"])
-
-
-def get_pipeline() -> Pipeline:
-    return _state["pipeline"]
-
-
-def get_search() -> SearchEngine:
-    return _state["search"]
-
-
-def get_sqlite() -> SQLiteStore:
-    return _state["sqlite"]
 
 
 if __name__ == "__main__":

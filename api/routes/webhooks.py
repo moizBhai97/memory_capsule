@@ -6,12 +6,12 @@ Any platform that can send an HTTP POST can push content here.
 import hashlib
 import hmac
 import logging
-from typing import Optional
 
 from fastapi import APIRouter, BackgroundTasks, Header, HTTPException, Request
 from fastapi.responses import PlainTextResponse
 
-from api.main import get_pipeline
+from api.state import get_pipeline
+from api.normalizer import normalize
 from capsule.models import SourceApp
 from config import get_config
 
@@ -47,29 +47,25 @@ async def generic_webhook(request: Request, background_tasks: BackgroundTasks):
             raise HTTPException(status_code=401, detail="Invalid webhook signature")
 
     pipeline = get_pipeline()
-    text = body.get("text", "")
-    url = body.get("url")
-    source_app = body.get("source_app", "webhook")
-    source_sender = body.get("source_sender")
-    source_chat = body.get("source_chat")
-    metadata = body.get("metadata", {})
+    platform_hint = request.headers.get("X-Platform", "")
+    normalized = normalize(body, platform_hint)
 
-    if not text and not url:
+    if not normalized:
         raise HTTPException(status_code=400, detail="Either 'text' or 'url' required")
 
     try:
-        app_enum = SourceApp(source_app)
+        app_enum = SourceApp(normalized["source_app"])
     except ValueError:
         app_enum = SourceApp.UNKNOWN
 
     async def _process():
         await pipeline.process_text(
-            text=text,
+            text=normalized["text"],
             source_app=app_enum,
-            source_sender=source_sender,
-            source_chat=source_chat,
-            source_url=url,
-            metadata={"webhook_source": source_app, **metadata},
+            source_sender=normalized["source_sender"],
+            source_chat=normalized["source_chat"],
+            source_url=normalized["source_url"],
+            metadata=normalized["metadata"],
         )
 
     background_tasks.add_task(_process)
@@ -210,7 +206,7 @@ def _verify_meta_signature(body: bytes, token: str, signature: str) -> bool:
     return hmac.compare_digest(expected, signature[7:])
 
 
-def _mime_to_ext(mime: str) -> Optional[str]:
+def _mime_to_ext(mime: str) -> str | None:
     mapping = {
         "audio/ogg": ".ogg",
         "audio/mpeg": ".mp3",

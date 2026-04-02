@@ -75,7 +75,7 @@ class CapsuleEventHandler(FileSystemEventHandler):
         if path.name.startswith(".") or path.name.startswith("~"):
             return
 
-        logger.info(f"New file detected: {path.name}")
+        logger.info("New file detected: %s", path.name)
         self._enqueue("ingest_file", {
             "file_path": str(path),
             "source_app": "watch_folder",
@@ -96,15 +96,15 @@ class FolderWatcher:
         for folder in self._folders:
             path = Path(folder)
             if not path.exists():
-                logger.warning(f"Watch folder does not exist, skipping: {folder}")
+                logger.warning("Watch folder does not exist, skipping: %s", folder)
                 continue
             self._observer.schedule(handler, str(path), recursive=False)
             started.append(folder)
-            logger.info(f"Watching folder: {folder}")
+            logger.info("Watching folder: %s", folder)
 
         if started:
             self._observer.start()
-            logger.info(f"File watcher started — watching {len(started)} folder(s)")
+            logger.info("File watcher started — watching %s folder(s)", len(started))
         else:
             logger.warning("No valid folders to watch")
 

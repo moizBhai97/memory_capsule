@@ -2,16 +2,12 @@
 The core pipeline. Every capsule goes through this regardless of source.
 
 Ingest → Extract text → LLM process → Embed → Store
-
-This is the ONLY place that orchestrates the full flow.
-Future: wrap this with LangChain/agent orchestration without changing internals.
 """
 
 import logging
 import shutil
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
 
 from capsule.models import Capsule, CapsuleSource, CapsuleStatus, SourceApp, Reminder
 from capsule.ingest import ingest_file, ingest_url, ingest_text
@@ -33,10 +29,10 @@ class Pipeline:
         self,
         file_path: str,
         source_app: SourceApp = SourceApp.UNKNOWN,
-        source_sender: Optional[str] = None,
-        source_chat: Optional[str] = None,
-        timestamp: Optional[datetime] = None,
-        metadata: Optional[dict] = None,
+        source_sender: str | None = None,
+        source_chat: str | None = None,
+        timestamp: datetime | None = None,
+        metadata: dict | None = None,
     ) -> Capsule:
         """
         Full pipeline for a file.
@@ -62,7 +58,7 @@ class Pipeline:
         try:
             await self._run(capsule, file_path=file_path)
         except Exception as e:
-            logger.error(f"Pipeline failed for {file_path}: {e}")
+            logger.error("Pipeline failed for %s: %s", file_path, e)
             capsule.status = CapsuleStatus.FAILED
             capsule.error = str(e)
             self.sqlite.save(capsule)
@@ -74,11 +70,11 @@ class Pipeline:
         self,
         text: str,
         source_app: SourceApp = SourceApp.UNKNOWN,
-        source_sender: Optional[str] = None,
-        source_chat: Optional[str] = None,
-        source_url: Optional[str] = None,
-        timestamp: Optional[datetime] = None,
-        metadata: Optional[dict] = None,
+        source_sender: str | None = None,
+        source_chat: str | None = None,
+        source_url: str | None = None,
+        timestamp: datetime | None = None,
+        metadata: dict | None = None,
     ) -> Capsule:
         """Full pipeline for raw text or URL."""
         capsule = Capsule(
@@ -98,7 +94,7 @@ class Pipeline:
             else:
                 await self._run(capsule, raw_text=text)
         except Exception as e:
-            logger.error(f"Pipeline failed for text: {e}")
+            logger.error("Pipeline failed for text: %s", e)
             capsule.status = CapsuleStatus.FAILED
             capsule.error = str(e)
             self.sqlite.save(capsule)
@@ -119,9 +115,6 @@ class Pipeline:
         if file_path:
             source_type, extracted = await ingest_file(
                 file_path,
-                whisper_model=self.cfg.whisper.model,
-                whisper_device=self.cfg.whisper.device,
-                whisper_language=self.cfg.whisper.language,
             )
             capsule.source_type = source_type
             capsule.raw_content = extracted.get("text", "")
@@ -140,7 +133,7 @@ class Pipeline:
             capsule.raw_content = extracted.get("text", "")
 
         if not capsule.raw_content:
-            logger.warning(f"No content extracted for capsule {capsule.id}")
+            logger.warning("No content extracted for capsule %s", capsule.id)
             capsule.status = CapsuleStatus.READY
             self.sqlite.save(capsule)
             return
@@ -184,7 +177,7 @@ class Pipeline:
             },
         )
 
-        logger.info(f"Capsule ready: {capsule.id} | {capsule.source_app.value} | tags: {capsule.tags}")
+        logger.info("Capsule ready: %s | %s | tags: %s", capsule.id, capsule.source_app.value, capsule.tags)
 
     def _save_file(self, original_path: str) -> str:
         """Copy original file to uploads directory. Preserves original."""

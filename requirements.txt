@@ -18,18 +18,11 @@ Pillow>=10.0.0                 # image utils
 # ---- File watching ----
 watchdog>=4.0.0
 
-# ---- Search ----
-# No extra deps — FTS5 built into SQLite, ChromaDB handles vector search
-
 # ---- Integrations (install what you need) ----
-# Telegram userbot
-telethon>=1.34.0
+# telethon>=1.34.0             # pip install telethon  — Telegram userbot
+# slack-bolt>=1.18.0           # pip install slack-bolt
+# discord.py>=2.3.0            # pip install discord.py
 
 # ---- AI Providers (install what you use) ----
-# openai>=1.12.0               # pip install openai
+# openai>=1.12.0               # pip install openai  — covers OpenAI, Groq, Ollama, any openai-compatible
 # anthropic>=0.20.0            # pip install anthropic
-# groq>=0.5.0                  # pip install groq
-
-# ---- Dev ----
-pytest>=8.0.0
-pytest-asyncio>=0.23.0

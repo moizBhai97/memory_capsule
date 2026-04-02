@@ -6,7 +6,6 @@ The simplest handler but still does meaningful cleanup.
 import logging
 import re
 from pathlib import Path
-from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -74,7 +73,7 @@ async def extract_from_url(url: str) -> dict:
     }
 
 
-def extract_from_string(text: str, source_app: str = "manual") -> dict:
+def extract_from_string(text: str) -> dict:
     """Process raw text string — used by API, webhooks, CLI."""
     return {"text": _clean(text)}
 

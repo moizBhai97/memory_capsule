@@ -39,7 +39,7 @@ class DiscordWatcher:
 
         @client.event
         async def on_ready():
-            logger.info(f"Discord bot connected as {client.user}")
+            logger.info("Discord bot connected as %s", client.user)
 
         @client.event
         async def on_message(message):
@@ -111,4 +111,4 @@ class DiscordWatcher:
                 "metadata": metadata,
             })
         except Exception as e:
-            logger.error(f"Failed to download Discord attachment: {e}")
+            logger.error("Failed to download Discord attachment: %s", e)

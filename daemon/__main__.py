@@ -89,7 +89,7 @@ class MemoryCapsuleDaemon:
                 self._integration_tasks.append(task)
                 logger.info("Telegram watcher started")
             except Exception as e:
-                logger.error(f"Telegram watcher failed to start: {e}")
+                logger.error("Telegram watcher failed to start: %s", e)
 
         if ig.email_enabled:
             try:
@@ -100,7 +100,7 @@ class MemoryCapsuleDaemon:
                 self._integration_tasks.append(task)
                 logger.info("Email watcher started")
             except Exception as e:
-                logger.error(f"Email watcher failed to start: {e}")
+                logger.error("Email watcher failed to start: %s", e)
 
         if ig.slack_enabled:
             try:
@@ -111,7 +111,7 @@ class MemoryCapsuleDaemon:
                 self._integration_tasks.append(task)
                 logger.info("Slack watcher started")
             except Exception as e:
-                logger.error(f"Slack watcher failed to start: {e}")
+                logger.error("Slack watcher failed to start: %s", e)
 
         if ig.discord_enabled:
             try:
@@ -122,7 +122,7 @@ class MemoryCapsuleDaemon:
                 self._integration_tasks.append(task)
                 logger.info("Discord watcher started")
             except Exception as e:
-                logger.error(f"Discord watcher failed to start: {e}")
+                logger.error("Discord watcher failed to start: %s", e)
 
         if ig.whatsapp_enabled:
             logger.info("WhatsApp watcher: start the Node.js bridge separately")
@@ -142,7 +142,7 @@ class MemoryCapsuleDaemon:
                 await self._process_job(job)
                 self.queue.complete(job["id"])
             except Exception as e:
-                logger.error(f"Job {job['id']} failed: {e}")
+                logger.error("Job %s failed: %s", job['id'], e)
                 self.queue.fail(job["id"], str(e))
 
     async def _process_job(self, job: dict):
@@ -181,7 +181,7 @@ class MemoryCapsuleDaemon:
             )
 
         else:
-            logger.warning(f"Unknown job type: {job_type}")
+            logger.warning("Unknown job type: %s", job_type)
 
     async def stop(self):
         logger.info("Daemon stopping...")
@@ -200,7 +200,7 @@ async def main():
     daemon = MemoryCapsuleDaemon()
 
     # Graceful shutdown on Ctrl+C or SIGTERM
-    loop = asyncio.get_event_loop()
+    loop = asyncio.get_running_loop()
 
     def _shutdown():
         logger.info("Shutdown signal received")

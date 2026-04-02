@@ -35,10 +35,10 @@ async def extract_text(file_path: str, languages: list[str] = None) -> dict:
     if languages is None:
         languages = ["en"]
 
-    logger.info(f"Running OCR on {path.name} (languages: {languages})")
+    logger.info("Running OCR on %s (languages: %s)", path.name, languages)
 
     # EasyOCR is synchronous — run in thread pool to not block async loop
-    loop = asyncio.get_event_loop()
+    loop = asyncio.get_running_loop()
 
     def _run_ocr():
         # gpu=False — saves VRAM for Whisper + LLM

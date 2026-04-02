@@ -99,7 +99,7 @@ class SlackWatcher:
                     )
                 )
 
-        handler = AsyncSocketModeHandler(app, ig.slack_bot_token)
+        handler = AsyncSocketModeHandler(app, ig.slack_app_token)
         logger.info("Slack bot started")
         await handler.start_async()
 
@@ -128,7 +128,7 @@ class SlackWatcher:
                 "metadata": metadata,
             })
         except Exception as e:
-            logger.error(f"Failed to download Slack file: {e}")
+            logger.error("Failed to download Slack file: %s", e)
 
 
 async def _get_user_name(client, user_id: str) -> str:

@@ -7,10 +7,9 @@ No external dependencies — pure Python.
 
 import re
 from datetime import datetime, timedelta
-from typing import Optional
 
 
-def parse_date_range(query: str, now: datetime = None) -> tuple[Optional[str], Optional[str], str]:
+def parse_date_range(query: str, now: datetime = None) -> tuple[str | None, str | None, str]:
     """
     Extract date range from natural language query.
     Returns: (from_date_iso, to_date_iso, cleaned_query)

@@ -36,13 +36,13 @@ class EmailWatcher:
     async def start(self):
         ig = self.cfg.integrations
         self._running = True
-        logger.info(f"Email watcher starting: {ig.email_username}@{ig.email_host}")
+        logger.info("Email watcher starting: %s@%s", ig.email_username, ig.email_host)
 
         while self._running:
             try:
                 await self._watch()
             except Exception as e:
-                logger.error(f"Email watcher error: {e}. Retrying in 30s...")
+                logger.error("Email watcher error: %s. Retrying in 30s...", e)
                 await asyncio.sleep(30)
 
     async def _watch(self):
@@ -58,7 +58,7 @@ class EmailWatcher:
 
         mail.login(ig.email_username, ig.email_password)
         mail.select(ig.email_folder)
-        logger.info(f"Email connected: {ig.email_username}")
+        logger.info("Email connected: %s", ig.email_username)
 
         # Get all unseen emails on startup
         await self._fetch_unseen(mail)
@@ -71,7 +71,7 @@ class EmailWatcher:
                 mail.noop()  # keep connection alive
                 await self._fetch_unseen(mail)
             except Exception as e:
-                logger.warning(f"Email poll error: {e}")
+                logger.warning("Email poll error: %s", e)
                 break
 
         mail.logout()
@@ -85,7 +85,7 @@ class EmailWatcher:
             return
 
         ids = messages[0].split()
-        logger.info(f"Found {len(ids)} new email(s)")
+        logger.info("Found %s new email(s)", len(ids))
 
         for msg_id in ids:
             try:
@@ -95,7 +95,7 @@ class EmailWatcher:
                 # Mark as seen
                 mail.store(msg_id, "+FLAGS", "\\Seen")
             except Exception as e:
-                logger.error(f"Failed to process email {msg_id}: {e}")
+                logger.error("Failed to process email %s: %s", msg_id, e)
 
     async def _process_email(self, raw: bytes):
         msg = email.message_from_bytes(raw)
@@ -104,7 +104,7 @@ class EmailWatcher:
         from_addr = _decode_header_value(msg.get("From", ""))
         date_str = msg.get("Date", "")
 
-        logger.info(f"Processing email: '{subject}' from {from_addr}")
+        logger.info("Processing email: '%s' from %s", subject, from_addr)
 
         metadata = {
             "platform": "email",

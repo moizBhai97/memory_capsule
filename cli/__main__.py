@@ -203,7 +203,8 @@ async def _cmd_status():
     cfg = get_config()
 
     print("\nMemory Capsule Status\n")
-    print(f"  Provider  : {cfg.provider}")
+    print(f"  LLM       : {cfg.llm.model}")
+    print(f"  Transcribe: {cfg.transcribe.model}")
     print(f"  Storage   : {cfg.storage.sqlite_path}")
 
     sqlite = SQLiteStore(cfg.storage.sqlite_path)

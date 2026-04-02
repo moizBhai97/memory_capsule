@@ -41,9 +41,6 @@ async def test_pipeline_text(stores, tmp_dirs, monkeypatch):
     # Mock config
     mock_cfg = MagicMock()
     mock_cfg.storage.uploads_path = tmp_dirs["uploads"]
-    mock_cfg.whisper.model = "small"
-    mock_cfg.whisper.device = "cpu"
-    mock_cfg.whisper.language = None
 
     monkeypatch.setattr("capsule.pipeline.get_config", lambda: mock_cfg)
 
@@ -93,9 +90,6 @@ async def test_pipeline_stores_and_retrieves(stores, tmp_dirs, monkeypatch):
 
     mock_cfg = MagicMock()
     mock_cfg.storage.uploads_path = tmp_dirs["uploads"]
-    mock_cfg.whisper.model = "small"
-    mock_cfg.whisper.device = "cpu"
-    mock_cfg.whisper.language = None
 
     monkeypatch.setattr("capsule.pipeline.get_config", lambda: mock_cfg)
 

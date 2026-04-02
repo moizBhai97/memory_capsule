@@ -6,13 +6,12 @@ Future: swap ChromaDB for Qdrant, Pinecone, or pgvector with zero pipeline chang
 
 import logging
 from pathlib import Path
-from typing import Optional
 
 logger = logging.getLogger(__name__)
 
 
 class VectorStore:
-    def __init__(self, chroma_path: str, embed_dimension: int = 768):
+    def __init__(self, chroma_path: str):
         import chromadb
         Path(chroma_path).mkdir(parents=True, exist_ok=True)
         self._client = chromadb.PersistentClient(path=chroma_path)
@@ -20,7 +19,7 @@ class VectorStore:
             name="capsules",
             metadata={"hnsw:space": "cosine"},  # cosine similarity for text
         )
-        logger.info(f"Vector store ready: {chroma_path} ({self._collection.count()} vectors)")
+        logger.info("Vector store ready: %s (%s vectors)", chroma_path, self._collection.count())
 
     def upsert(self, capsule_id: str, embedding: list[float], metadata: dict) -> None:
         """Store or update embedding for a capsule."""
@@ -34,7 +33,7 @@ class VectorStore:
         self,
         query_embedding: list[float],
         limit: int = 20,
-        where: Optional[dict] = None,
+        where: dict | None = None,
     ) -> list[dict]:
         """
         Semantic similarity search.

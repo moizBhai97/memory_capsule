@@ -11,12 +11,11 @@ Why here and not in api/routes/webhooks.py?
 
 import logging
 from datetime import datetime
-from typing import Optional
 
 logger = logging.getLogger(__name__)
 
 
-def normalize(payload: dict, platform_hint: str = "") -> Optional[dict]:
+def normalize(payload: dict, platform_hint: str = "") -> dict | None:
     """
     Normalize an inbound webhook payload to standard format.
 
@@ -47,7 +46,7 @@ def normalize(payload: dict, platform_hint: str = "") -> Optional[dict]:
     return _normalize_generic(payload)
 
 
-def _normalize_generic(payload: dict) -> Optional[dict]:
+def _normalize_generic(payload: dict) -> dict | None:
     text = (
         payload.get("text")
         or payload.get("body")
@@ -71,7 +70,7 @@ def _normalize_generic(payload: dict) -> Optional[dict]:
     }
 
 
-def _normalize_zapier(payload: dict) -> Optional[dict]:
+def _normalize_zapier(payload: dict) -> dict | None:
     # Zapier typically sends flat key-value pairs from trigger data
     text = payload.get("text") or payload.get("body_plain") or payload.get("body") or ""
     subject = payload.get("subject") or payload.get("name") or ""
@@ -95,7 +94,7 @@ def _normalize_zapier(payload: dict) -> Optional[dict]:
     }
 
 
-def _normalize_n8n(payload: dict) -> Optional[dict]:
+def _normalize_n8n(payload: dict) -> dict | None:
     # n8n passes data as-is from whatever node triggered it
     # Usually wrapped in a list or has a "data" key
     data = payload
@@ -118,7 +117,7 @@ def _normalize_n8n(payload: dict) -> Optional[dict]:
     }
 
 
-def _normalize_make(payload: dict) -> Optional[dict]:
+def _normalize_make(payload: dict) -> dict | None:
     # Make.com (formerly Integromat) sends webhook data directly
     text = payload.get("text") or payload.get("message") or payload.get("content") or ""
     if not text and not payload.get("url"):
@@ -134,7 +133,7 @@ def _normalize_make(payload: dict) -> Optional[dict]:
     }
 
 
-def _normalize_typeform(payload: dict) -> Optional[dict]:
+def _normalize_typeform(payload: dict) -> dict | None:
     """Typeform form submissions."""
     form_response = payload.get("form_response", payload)
     answers = form_response.get("answers", [])
@@ -170,7 +169,7 @@ def _normalize_typeform(payload: dict) -> Optional[dict]:
     }
 
 
-def _normalize_github(payload: dict) -> Optional[dict]:
+def _normalize_github(payload: dict) -> dict | None:
     """GitHub webhooks — issues, PRs, comments."""
     action = payload.get("action", "")
     repo = payload.get("repository", {}).get("full_name", "")
@@ -207,7 +206,7 @@ def _normalize_github(payload: dict) -> Optional[dict]:
     }
 
 
-def _normalize_linear(payload: dict) -> Optional[dict]:
+def _normalize_linear(payload: dict) -> dict | None:
     """Linear issue tracker webhooks."""
     action = payload.get("action", "")
     data = payload.get("data", {})

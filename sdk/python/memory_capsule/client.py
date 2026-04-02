@@ -21,7 +21,6 @@ Usage:
 import mimetypes
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
 from dataclasses import dataclass
 
 import httpx
@@ -34,12 +33,12 @@ class CapsuleResult:
     tags: list[str]
     action_items: list[str]
     source_app: str
-    source_sender: Optional[str]
-    source_chat: Optional[str]
+    source_sender: str | None
+    source_chat: str | None
     timestamp: str
     snippet: str
     score: float
-    raw_content: Optional[str] = None
+    raw_content: str | None = None
 
     @classmethod
     def from_dict(cls, d: dict, score: float = 1.0, snippet: str = "") -> "CapsuleResult":
@@ -83,13 +82,13 @@ class MemoryCapsule:
 
     def add(
         self,
-        file: Optional[str] = None,
-        text: Optional[str] = None,
-        url: Optional[str] = None,
+        file: str | None = None,
+        text: str | None = None,
+        url: str | None = None,
         source: str = "sdk",
-        sender: Optional[str] = None,
-        chat: Optional[str] = None,
-        metadata: Optional[dict] = None,
+        sender: str | None = None,
+        chat: str | None = None,
+        metadata: dict | None = None,
     ) -> dict:
         """
         Capture content into memory.
@@ -98,7 +97,7 @@ class MemoryCapsule:
             file: Path to file (audio, image, PDF, text)
             text: Raw text to capture
             url: URL to fetch and capture
-            source: Source app name (e.g. "whatsapp", "meeting", "manual")
+            source: Source app name — must match a SourceApp enum value (e.g. "api", "cli", "webhook")
             sender: Who sent/created this content
             chat: Chat name, email subject, or context label
             metadata: Any extra platform-specific data
@@ -117,10 +116,10 @@ class MemoryCapsule:
         self,
         query: str,
         limit: int = 10,
-        source: Optional[str] = None,
-        source_type: Optional[str] = None,
-        from_date: Optional[str] = None,
-        to_date: Optional[str] = None,
+        source: str | None = None,
+        source_type: str | None = None,
+        from_date: str | None = None,
+        to_date: str | None = None,
     ) -> list[CapsuleResult]:
         """
         Search your memory with natural language.
@@ -162,9 +161,9 @@ class MemoryCapsule:
     def list(
         self,
         limit: int = 20,
-        source: Optional[str] = None,
-        from_date: Optional[str] = None,
-        to_date: Optional[str] = None,
+        source: str | None = None,
+        from_date: str | None = None,
+        to_date: str | None = None,
     ) -> list[CapsuleResult]:
         """List recent capsules."""
         params = {"limit": limit}
@@ -180,7 +179,7 @@ class MemoryCapsule:
         data = resp.json()
         return [CapsuleResult.from_dict(c) for c in data.get("capsules", [])]
 
-    def get(self, capsule_id: str) -> Optional[CapsuleResult]:
+    def get(self, capsule_id: str) -> CapsuleResult | None:
         """Get a specific capsule by ID."""
         resp = self._client.get(f"{self.base_url}/api/capsules/{capsule_id}")
         if resp.status_code == 404:

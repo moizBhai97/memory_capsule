@@ -166,7 +166,7 @@ cd open-memory-capsule
 pip install -e .
 
 # Pull required AI models (one time, ~2GB)
-ollama pull phi3.5:mini
+ollama pull phi3.5
 ollama pull nomic-embed-text
 
 # Copy and edit config
@@ -192,7 +192,8 @@ Copy `config.yaml` to `config.local.yaml` (gitignored) and edit:
 # Which AI provider to use
 # ollama = free, local, runs on your GPU
 # openai / anthropic / groq = paid, cloud, better quality
-provider: ollama
+llm:
+  provider: ollama
 
 # Connect your platforms (enable what you use)
 integrations:
@@ -229,13 +230,18 @@ integrations:
   zoom_recordings_path: "~/Documents/Zoom"
 ```
 
-All sensitive values can also be set as environment variables:
+Sensitive values can also be set as environment variables (recommended):
 
 ```bash
 OPENAI_API_KEY=sk-...
-MC_TELEGRAM_API_ID=12345
+ANTHROPIC_API_KEY=sk-ant-...
+GROQ_API_KEY=gsk_...
+MC_API_KEY=...
 MC_EMAIL_PASSWORD=...
 ```
+
+Non-sensitive runtime settings (provider/model/paths/flags) should live in config files.
+Precedence is: environment variables (secrets) > config.local.yaml > config.yaml > defaults.
 
 ---
 
@@ -250,7 +256,8 @@ MC_EMAIL_PASSWORD=...
 
 Switch provider in one line:
 ```yaml
-provider: groq  # free, fast, cloud
+llm:
+  provider: groq  # free, fast, cloud
 ```
 
 ---
@@ -442,11 +449,12 @@ See [`browser-extension/README.md`](browser-extension/README.md) for Firefox and
 **If you use cloud AI providers (OpenAI/Anthropic):**
 - Only the text content of capsules is sent for processing
 - Credentials are never sent
-- You control this via the `provider` setting
+- You control this via the `llm.provider` setting
 
 **Want end-to-end local?**
 ```yaml
-provider: ollama   # everything stays on your machine
+llm:
+  provider: ollama   # everything stays on your machine
 ```
 
 ---
@@ -459,7 +467,7 @@ provider: ollama   # everything stays on your machine
 | GPU (local AI) | 4GB VRAM (RTX 3050) | 8GB VRAM |
 | Storage | 5GB free | 20GB free |
 
-**Tested on RTX 3050 4GB** — Whisper small + Phi3.5 mini + nomic-embed fit comfortably.
+**Tested on RTX 3050 4GB** — Whisper small + Phi3.5 + nomic-embed fit comfortably.
 
 ---
 

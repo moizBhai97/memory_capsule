@@ -12,7 +12,6 @@ import sqlite3
 from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
 
 from capsule.models import Capsule, CapsuleSource, CapsuleStatus, SourceApp, Reminder
 
@@ -85,7 +84,7 @@ class SQLiteStore:
         with self._conn() as conn:
             conn.executescript(SCHEMA)
             conn.commit()
-        logger.info(f"SQLite store ready: {self.db_path}")
+        logger.info("SQLite store ready: %s", self.db_path)
 
     @contextmanager
     def _conn(self):
@@ -136,7 +135,7 @@ class SQLiteStore:
             ))
             conn.commit()
 
-    def get(self, capsule_id: str) -> Optional[Capsule]:
+    def get(self, capsule_id: str) -> Capsule | None:
         with self._conn() as conn:
             row = conn.execute(
                 "SELECT * FROM capsules WHERE id = ?", (capsule_id,)

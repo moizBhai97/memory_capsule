@@ -1,19 +1,14 @@
-"""
-Anthropic provider — paid, cloud, excellent at structured extraction.
-"""
-
 import json
-import logging
 
-from .base import EmbedProvider, ExtractionResult, LLMProvider, EXTRACTION_PROMPT
-
-logger = logging.getLogger(__name__)
+from ..base import ExtractionResult, LLMProvider
+from .prompts import EXTRACTION_PROMPT
 
 
 class AnthropicLLM(LLMProvider):
     def __init__(self, api_key: str, model: str):
         try:
             import anthropic
+
             self._client = anthropic.AsyncAnthropic(api_key=api_key)
         except ImportError:
             raise ImportError("Run: pip install anthropic")
@@ -52,23 +47,6 @@ class AnthropicLLM(LLMProvider):
 
     async def health_check(self) -> bool:
         try:
-            # Minimal check — just verify client initializes
             return self._client is not None
         except Exception:
             return False
-
-
-# Anthropic doesn't offer embeddings — use Ollama or OpenAI for that
-class AnthropicEmbed(EmbedProvider):
-    """Placeholder — Anthropic has no embedding API. Falls back to Ollama."""
-
-    def __init__(self):
-        raise NotImplementedError(
-            "Anthropic does not provide embeddings. "
-            "Set embed_provider: ollama in config (can mix providers)."
-        )
-
-    async def embed(self, text: str) -> list[float]: ...
-    async def embed_batch(self, texts: list[str]) -> list[list[float]]: ...
-    def dimension(self) -> int: ...
-    async def health_check(self) -> bool: ...

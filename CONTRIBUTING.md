@@ -29,7 +29,7 @@ Open an issue describing:
 
 - `main` is protected and accepts changes via PR only
 - Keep PRs focused and reasonably small
-- Link an issue when possible (`Fixes #123`)
+- Link an issue when possible
 - Prefer squash merge to keep history clean
 
 ## Commit Messages
