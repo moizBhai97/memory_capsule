@@ -2,7 +2,7 @@ import json
 
 import httpx
 
-from ..base import EmbedProvider, ExtractionResult, LLMProvider
+from ..base import EmbedProvider, LLMResult, LLMProvider
 from .prompts import EXTRACTION_PROMPT
 
 
@@ -18,7 +18,7 @@ class GeminiLLM(LLMProvider):
         source_app: str,
         source_sender: str | None = None,
         source_type: str = "unknown",
-    ) -> ExtractionResult:
+    ) -> LLMResult:
         sender_line = f"Sender: {source_sender}" if source_sender else ""
         prompt = EXTRACTION_PROMPT.format(
             source_app=source_app,
@@ -49,7 +49,7 @@ class GeminiLLM(LLMProvider):
         )
         result = json.loads(text)
 
-        return ExtractionResult(
+        return LLMResult(
             summary=result.get("summary", ""),
             tags=[t.lower().replace(" ", "-") for t in result.get("tags", [])[:10]],
             action_items=result.get("action_items", []),

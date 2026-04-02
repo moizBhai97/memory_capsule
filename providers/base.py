@@ -8,7 +8,7 @@ from dataclasses import dataclass
 
 
 @dataclass
-class ExtractionResult:
+class LLMResult:
     """Structured output from LLM processing a capsule."""
     summary: str
     tags: list[str]
@@ -29,7 +29,7 @@ class LLMProvider(ABC):
         source_app: str,
         source_sender: str | None = None,
         source_type: str = "unknown",
-    ) -> ExtractionResult:
+    ) -> LLMResult:
         ...
 
     @abstractmethod

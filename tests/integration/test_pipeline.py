@@ -45,9 +45,9 @@ async def test_pipeline_text(stores, tmp_dirs, monkeypatch):
     monkeypatch.setattr("capsule.pipeline.get_config", lambda: mock_cfg)
 
     # Mock LLM provider
-    from providers.base import ExtractionResult
+    from providers.base import LLMResult
     mock_llm = AsyncMock()
-    mock_llm.extract_capsule_info.return_value = ExtractionResult(
+    mock_llm.extract_capsule_info.return_value = LLMResult(
         summary="Client confirmed $15k budget for the website project",
         tags=["ahmed", "budget", "15k", "website"],
         action_items=["Follow up by Friday"],
@@ -93,9 +93,9 @@ async def test_pipeline_stores_and_retrieves(stores, tmp_dirs, monkeypatch):
 
     monkeypatch.setattr("capsule.pipeline.get_config", lambda: mock_cfg)
 
-    from providers.base import ExtractionResult
+    from providers.base import LLMResult
     mock_llm = AsyncMock()
-    mock_llm.extract_capsule_info.return_value = ExtractionResult(
+    mock_llm.extract_capsule_info.return_value = LLMResult(
         summary="Test summary", tags=["test"], action_items=[], language="en"
     )
     monkeypatch.setattr("capsule.pipeline.get_llm", lambda: mock_llm)

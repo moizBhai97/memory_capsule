@@ -14,7 +14,7 @@ base_url and api_key values pulled from PROVIDER_CATALOG or config.
 import json
 import logging
 
-from ..base import EmbedProvider, ExtractionResult, LLMProvider
+from ..base import EmbedProvider, LLMResult, LLMProvider
 from .prompts import EXTRACTION_PROMPT
 from config import ProviderConfig
 from ..registry import PROVIDER_CATALOG
@@ -58,7 +58,7 @@ class OpenAICompatibleLLM(LLMProvider):
         source_app: str,
         source_sender: str | None = None,
         source_type: str = "unknown",
-    ) -> ExtractionResult:
+    ) -> LLMResult:
         sender_line = f"Sender: {source_sender}" if source_sender else ""
         prompt = EXTRACTION_PROMPT.format(
             source_app=source_app,
@@ -81,7 +81,7 @@ class OpenAICompatibleLLM(LLMProvider):
         response = await self._client.chat.completions.create(**kwargs)
         result = json.loads(response.choices[0].message.content)
 
-        return ExtractionResult(
+        return LLMResult(
             summary=result.get("summary", ""),
             tags=[t.lower().replace(" ", "-") for t in result.get("tags", [])[:10]],
             action_items=result.get("action_items", []),

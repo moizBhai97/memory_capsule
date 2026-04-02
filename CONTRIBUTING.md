@@ -86,7 +86,7 @@ Implement the two interfaces in `providers/base.py`:
 
 ```python
 class MyProviderLLM(LLMProvider):
-    async def extract_capsule_info(self, raw_content, source_app, ...) -> ExtractionResult:
+    async def extract_capsule_info(self, raw_content, source_app, ...) -> LLMResult:
         ...
 
     async def health_check(self) -> bool:
